@@ -53,7 +53,7 @@ static bool handle_http_request(int sockfd)
 
     // terminate the string
     buff[n] = 0;
-    printf(buff);
+    printf("%s",buff);
 
     char * curr = buff;
 

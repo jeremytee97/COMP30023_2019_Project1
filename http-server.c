@@ -83,7 +83,7 @@ static bool handle_http_request(int sockfd)
         {
             // get the size of the file
             struct stat st;
-            stat("lab6-GET.html", &st);
+            stat("1_intro.html", &st);
             n = sprintf(buff, HTTP_200_FORMAT, st.st_size);
             // send the header first
             if (write(sockfd, buff, n) < 0)
@@ -92,7 +92,7 @@ static bool handle_http_request(int sockfd)
                 return false;
             }
             // send the file
-            int filefd = open("lab6-GET.html", O_RDONLY);
+            int filefd = open("1_intro.html", O_RDONLY);
             do
             {
                 n = sendfile(sockfd, filefd, NULL, 2048);
@@ -117,7 +117,7 @@ static bool handle_http_request(int sockfd)
 
             // get the size of the file
             struct stat st;
-            stat("lab6-POST.html", &st);
+            stat("start.html", &st);
             // increase file size to accommodate the username
             long size = st.st_size + added_length;
             n = sprintf(buff, HTTP_200_FORMAT, size);
@@ -128,7 +128,7 @@ static bool handle_http_request(int sockfd)
                 return false;
             }
             // read the content of the HTML file
-            int filefd = open("lab6-POST.html", O_RDONLY);
+            int filefd = open("start.html", O_RDONLY);
             n = read(filefd, buff, 2048);
             if (n < 0)
             {

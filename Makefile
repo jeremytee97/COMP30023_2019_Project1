@@ -1,11 +1,11 @@
 BIN_DIR = bin
 CC = gcc
 CFLAGS = -std=c99 -O3 -Wall -Wpedantic
+OBJ    = server.o http.o 
+EXE    = server
 
-all: mkbin http-server
-
-%: %.c
-	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@ $<
+$(EXE): $(OBJ)
+	$(CC) $(CFLAGS) -o $(EXE) $(OBJ)
 
 .PHONY: clean mkbin
 

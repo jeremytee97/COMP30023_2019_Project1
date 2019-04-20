@@ -72,7 +72,8 @@ int main(int argc, char * argv[])
     FD_SET(sockfd, &masterfds);
     // record the maximum socket number
     int maxfd = sockfd;
-    printf("max fd %d", maxfd);
+    printf("Max FD is %d\n", sockfd);
+    int user[2] = {0, 0};
     while (1)
     {
         // monitor file descriptors
@@ -82,12 +83,11 @@ int main(int argc, char * argv[])
             perror("select");
             exit(EXIT_FAILURE);
         }
-
         // loop all possible descriptor
         for (int i = 0; i <= maxfd; ++i)
             // determine if the current file descriptor is active
             if (FD_ISSET(i, &readfds))
-            {
+            {   
                 // create new socket if there is new incoming connection request
                 if (i == sockfd)
                 {
@@ -114,11 +114,12 @@ int main(int argc, char * argv[])
                     }
                 }
                 // a request is sent from the client
-                else if (!handle_http_request(i))
+                else if (!handle_http_request(i, user))
                 {
                     close(i);
                     FD_CLR(i, &masterfds);
                 }
+                printf("FINAL STATE %d %d\n", user[0], user[1]);
             }
     }
 

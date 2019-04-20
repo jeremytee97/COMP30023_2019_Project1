@@ -201,28 +201,22 @@ bool handle_http_request(int sockfd, int state[])
 
             state[sockfd%2] = 1;
         }
+    } else if (state[sockfd%2] == 2){
+        // only post methods allowed in this page - either (quit or start with keyword)
+        // check just for completeness
+        if (method == POST){
+            //logic if got keyword implies start, if not implies quit
+            char* keyword = strstr(buff, "keyword=");
+            if (keyword){
+                keyword = strtok(keyword + 8, "&");
+                printf("Keyword is %s", keyword);
+            } else {
 
-        else if (state[sockfd%2] == 2){
-            // only post methods allowed in this page - either (quit or start with keyword)
-            // check just for completeness
-            if (method == POST){
-                //logic if got keyword implies start, if not implies quit
-                char* keyword = strstr(buff, "keyword=");
-                if (keyword){
-
-                } else {
-
-                }
             }
         }
-        else {
-            // never used, just for completeness
-            fprintf(stderr, "no other methods supported");
-        }  
-    }   
+    } 
     // send 404
-    else if (write(sockfd, HTTP_404, HTTP_404_LENGTH) < 0)
-    {
+    else if (write(sockfd, HTTP_404, HTTP_404_LENGTH) < 0){
         perror("write");
         return false;
     }
@@ -282,6 +276,18 @@ bool write_header_send_file(char* filename, char* buff, char const * format, int
     close(filefd);
     return true;
 }
-/*quit=Quit
 
+//STOPPED HERE
+/*
+int num_total_guesses(char guesses[][][], int sockfd){
+    int counter = 0;
+    while(guesses[sockfd%2][counter] != NULL){
+        counter ++;
+    }
+}*/
+/*quit=Quit
+else {
+            // never used, just for completeness
+            fprintf(stderr, "no other methods supported");
+        }  
 keyword=asda&guess=Guess */

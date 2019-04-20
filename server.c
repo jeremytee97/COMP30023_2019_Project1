@@ -73,7 +73,8 @@ int main(int argc, char * argv[])
     // record the maximum socket number
     int maxfd = sockfd;
     printf("Max FD is %d\n", sockfd);
-    int user[2] = {0, 0};
+    int state[2] = {0, 0};
+    char guesses[2][20][101]; 
     while (1)
     {
         // monitor file descriptors
@@ -114,12 +115,12 @@ int main(int argc, char * argv[])
                     }
                 }
                 // a request is sent from the client
-                else if (!handle_http_request(i, user))
+                else if (!handle_http_request(i, state))
                 {
                     close(i);
                     FD_CLR(i, &masterfds);
                 }
-                printf("FINAL STATE %d %d\n", user[0], user[1]);
+                printf("\nFINAL STATE %d %d\n", state[0], state[1]);
             }
     }
 

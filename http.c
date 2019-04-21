@@ -208,21 +208,84 @@ bool handle_http_request(int sockfd, int state[], char guesses[][20][101])
             //logic if got keyword implies start, if not implies quit
             char* keyword = strstr(buff, "keyword=");
             if (keyword){
-                keyword = strtok(keyword + 8, "&");
-                printf("Keyword is %s %ld", keyword, strlen(keyword));
-                int counter = next_guess_num(guesses, sockfd);
-                printf("\nCounter %d\n", counter);
-                strncpy(guesses[sockfd%2][counter], keyword, strlen(keyword));
-                guesses[sockfd%2][counter][strlen(keyword)+1] = '0';
-                printf("\nGuesses %s\n", guesses[sockfd%2][counter]);
 
-                if(state[(sockfd%2)+1] == 2 || state[(sockfd%2)+1] == 3){
-                    write_header_send_file("4_accepted.html", buff, HTTP_200_FORMAT, sockfd, n);
+                //implies both players are ready
+                if(state[(sockfd+1)%2] == 2 || state[(sockfd+1)%2] == 3){
+                    
+                    keyword = strtok(keyword + 8, "&");
+                    int counter = next_guess_num(guesses, sockfd);
+                    printf("\nCounter %d\n", counter);
+                    strncpy(guesses[sockfd%2][counter], keyword, strlen(keyword));
+                    guesses[sockfd%2][counter][strlen(keyword)+1] = '0';
+                    printf("\nCurrent guess %s\n", guesses[sockfd%2][counter]);
+
+                    char total_keyword [1000000];
+                    memset(total_keyword, '\0', sizeof(total_keyword));
+                    strncpy(total_keyword, guesses[sockfd%2][0], strlen(guesses[sockfd%2][0])+1);
+                    struct stat st;
+                    stat("4_accepted.html", &st);
+
+                    if(counter > 0){
+                        int i = 1;
+                        while(i <= counter){
+                            strcat(total_keyword, ",");
+                            strcat(total_keyword, guesses[sockfd%2][counter]);
+                            i++;
+                        }
+                    }
+
+                    printf("ALL KEYWORD : %s \n", total_keyword);
+                    long added_length = strlen(total_keyword) + 7;
+                    long size = st.st_size + added_length;
+                    n = sprintf(buff, HTTP_200_FORMAT, size);
+                    
+                    // send the header first
+                    if (write(sockfd, buff, n) < 0){
+                        perror("write");
+                        return false;
+                    }
+                    
+                    // read the content of the HTML file
+                    int filefd = open("4_accepted.html", O_RDONLY);
+                    n = read(filefd, buff, 2048);
+                    if (n < 0) {
+                        perror("read");
+                        close(filefd);
+                        return false;
+                    }
+                    close(filefd);
+
+                    //find the split section to insert username
+                    char* split = strstr(buff, "<form method=\"POST\">");
+                    int split_length = strlen(split);
+                    int buffer_length = strlen(buff);
+
+                    //initialise response buffer to be 0
+                    bzero(res_buff, 2049);
+
+                    //copy html content until the split into the res buff
+                    strncpy(res_buff, buff, buffer_length - split_length);
+
+                    //add in the username into the res buff
+                    strcat(res_buff, "<p>");
+                    strcat(res_buff, total_keyword);
+                    strcat(res_buff, "</p>");
+
+                    //add in the other html after the split
+                    strcat(res_buff, split);
+                    if (write(sockfd, res_buff, size) < 0){
+                        perror("write");
+                        return false;
+                    }
+
+                    state[sockfd%2] = 3;
                 } else {
                     write_header_send_file("5_discarded.html", buff, HTTP_200_FORMAT, sockfd, n);
                 }
+            // a player quits so move to game over
             } else {
-
+                write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n);
+                state[sockfd%2] = 5;
             }
         }
     } 

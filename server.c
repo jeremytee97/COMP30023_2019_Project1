@@ -124,7 +124,7 @@ int main(int argc, char * argv[])
                     close(i);
                     FD_CLR(i, &masterfds);
                 }
-                printf("\nFINAL STATE %d %d\n", state[0], state[1]);
+  /*               printf("\nFINAL STATE %d %d\n", state[0], state[1]);
                 if(i == 4 || i == 5){
                     for(int j = 0; j < MAX_KEYWORD_NUM; j++){
                         if(guesses[i%2][j][0] == '\0'){
@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
                         }
                         printf("\n %s \n", guesses[i%2][j]);
                     }
-                }
+                } */
             }
     }
 

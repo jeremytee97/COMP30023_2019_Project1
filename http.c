@@ -19,7 +19,7 @@
 
 #include "http.h"
 
-bool handle_http_request(int sockfd, int state[])
+bool handle_http_request(int sockfd, int state[], char guesses[][20][101])
 {
     // try to read the request
     char buff[2049];
@@ -209,7 +209,18 @@ bool handle_http_request(int sockfd, int state[])
             char* keyword = strstr(buff, "keyword=");
             if (keyword){
                 keyword = strtok(keyword + 8, "&");
-                printf("Keyword is %s", keyword);
+                printf("Keyword is %s %ld", keyword, strlen(keyword));
+                int counter = next_guess_num(guesses, sockfd);
+                printf("\nCounter %d\n", counter);
+                strncpy(guesses[sockfd%2][counter], keyword, strlen(keyword));
+                guesses[sockfd%2][counter][strlen(keyword)+1] = '0';
+                printf("\nGuesses %s\n", guesses[sockfd%2][counter]);
+
+                if(state[(sockfd%2)+1] == 2 || state[(sockfd%2)+1] == 3){
+                    write_header_send_file("4_accepted.html", buff, HTTP_200_FORMAT, sockfd, n);
+                } else {
+                    write_header_send_file("5_discarded.html", buff, HTTP_200_FORMAT, sockfd, n);
+                }
             } else {
 
             }
@@ -277,14 +288,17 @@ bool write_header_send_file(char* filename, char* buff, char const * format, int
     return true;
 }
 
-//STOPPED HERE
-/*
-int num_total_guesses(char guesses[][][], int sockfd){
+
+int next_guess_num(char guesses[][20][101], int sockfd){
     int counter = 0;
-    while(guesses[sockfd%2][counter] != NULL){
+    while(counter < 20){
+        if(guesses[sockfd%2][counter][0] == '\0'){
+            break;
+        }
         counter ++;
     }
-}*/
+    return counter;
+}
 /*quit=Quit
 else {
             // never used, just for completeness

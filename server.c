@@ -24,6 +24,10 @@
 
 #include "http.h"
 
+#define NUM_USER 2
+#define MAX_SIZE_OF_KEYWORD 100
+#define MAX_KEYWORD_NUM 20
+
 int main(int argc, char * argv[])
 {
     if (argc < 3)
@@ -64,7 +68,7 @@ int main(int argc, char * argv[])
     }
 
     // listen on the socket
-    listen(sockfd, 2);
+    listen(sockfd, NUM_USER);
 
     // initialise an active file descriptors set
     fd_set masterfds;
@@ -74,7 +78,7 @@ int main(int argc, char * argv[])
     int maxfd = sockfd;
     printf("Max FD is %d\n", sockfd);
     int state[2] = {0, 0};
-    char guesses[2][20][101]; 
+    char guesses[NUM_USER][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD+1]; 
     while (1)
     {
         // monitor file descriptors
@@ -115,12 +119,20 @@ int main(int argc, char * argv[])
                     }
                 }
                 // a request is sent from the client
-                else if (!handle_http_request(i, state))
+                else if (!handle_http_request(i, state, guesses))
                 {
                     close(i);
                     FD_CLR(i, &masterfds);
                 }
                 printf("\nFINAL STATE %d %d\n", state[0], state[1]);
+                if(i == 4 || i == 5){
+                    for(int j = 0; j < MAX_KEYWORD_NUM; j++){
+                        if(guesses[i%2][j][0] == '\0'){
+                            break;
+                        }
+                        printf("\n %s \n", guesses[i%2][j]);
+                    }
+                }
             }
     }
 

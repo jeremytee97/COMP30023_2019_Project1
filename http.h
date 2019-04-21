@@ -23,6 +23,7 @@ typedef enum
 } METHOD;
 
 
-bool handle_http_request(int sockfd, int* user);
+bool handle_http_request(int sockfd, int* user, char guesses[][20][101]);
 char* get_cookie(char* buff);
 bool write_header_send_file(char* filename, char* buff, char const * format, int sockfd, int n);
+int next_guess_num(char guesses[][20][101], int sockfd);

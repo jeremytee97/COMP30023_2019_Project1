@@ -25,8 +25,9 @@
 #include "http.h"
 
 #define NUM_USER 2
-#define MAX_SIZE_OF_KEYWORD 100
+#define MAX_SIZE_OF_KEYWORD 101
 #define MAX_KEYWORD_NUM 20
+#define MAX_COOKIE 10
 
 int main(int argc, char * argv[])
 {
@@ -76,9 +77,18 @@ int main(int argc, char * argv[])
     FD_SET(sockfd, &masterfds);
     // record the maximum socket number
     int maxfd = sockfd;
-    printf("Max FD is %d\n", sockfd);
-    int state[2] = {0, 0};
-    char guesses[NUM_USER][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD+1]; 
+    int state[MAX_COOKIE] = {0};
+    int current_players_cookie[2] = {-1, -1};
+    char guesses[MAX_COOKIE][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]; 
+    for (int i = 0; i < MAX_KEYWORD_NUM; i++){
+        guesses[0][i][0] = '\0';
+        guesses[1][i][0] = '\0';
+    }
+
+    //Cookie storing purposes
+    char user_cookie_mapping[MAX_COOKIE][MAX_SIZE_OF_KEYWORD];
+    memset(user_cookie_mapping, '\0', sizeof(user_cookie_mapping));
+
     while (1)
     {
         // monitor file descriptors
@@ -119,11 +129,13 @@ int main(int argc, char * argv[])
                     }
                 }
                 // a request is sent from the client
-                else if (!handle_http_request(i, state, guesses))
+                else if (!handle_http_request(i, state, guesses, user_cookie_mapping, current_players_cookie))
                 {
-                    close(i);
-                    FD_CLR(i, &masterfds);
+                    //close(i);
+                    //FD_CLR(i, &masterfds);
                 }
+                printf("Cookie 0 %s", user_cookie_mapping[0]);
+                printf("Cookie 1 %s", user_cookie_mapping[1]);
   /*               printf("\nFINAL STATE %d %d\n", state[0], state[1]);
                 if(i == 4 || i == 5){
                     for(int j = 0; j < MAX_KEYWORD_NUM; j++){

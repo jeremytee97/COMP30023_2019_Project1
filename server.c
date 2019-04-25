@@ -79,13 +79,12 @@ int main(int argc, char * argv[])
     int maxfd = sockfd;
     int state[MAX_COOKIE] = {0};
     int current_players_cookie[2] = {-1, -1};
-    char guesses[MAX_COOKIE][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]; 
-    for (int i = 0; i < MAX_KEYWORD_NUM; i++){
-        guesses[0][i][0] = '\0';
-        guesses[1][i][0] = '\0';
-    }
 
-    //Cookie storing purposes
+    //Clear all the buffers for storing guesses for each unique cookie
+    char guesses[MAX_COOKIE][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]; 
+    initialise_guesses(guesses);
+
+    //Clear buffers for Cookie storing purposes
     char user_cookie_mapping[MAX_COOKIE][MAX_SIZE_OF_KEYWORD];
     memset(user_cookie_mapping, '\0', sizeof(user_cookie_mapping));
 
@@ -132,7 +131,7 @@ int main(int argc, char * argv[])
                 else if (!handle_http_request(i, state, guesses, user_cookie_mapping, current_players_cookie))
                 {
                     printf("socket %d close the connection\n", sockfd);
-                    reinitialise_player_state(state, current_players_cookie);
+                    reinitialise_player_state_and_guesses(state, current_players_cookie, guesses);
                     close(i);
                     FD_CLR(i, &masterfds);
                     printf("\n==============\n");

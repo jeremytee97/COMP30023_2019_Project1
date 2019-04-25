@@ -664,11 +664,13 @@ int get_opponent_cookie(int current_player_cookies[], int user_cookie){
     return current_player_cookies[counter];
 }
 
-void reinitialise_player_state(int state[], int current_player_cookies[]){
+void reinitialise_player_state_and_guesses(int state[], int current_player_cookies[], 
+    char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]){
     if(state[current_player_cookies[0]] == 5 && state[current_player_cookies[1]] == 5){
        for(int i = 0; i < NUM_USER; i++){
-           state[current_player_cookies[i]] = 0;
-           current_player_cookies[i] = -1;
+            state[current_player_cookies[i]] = 0;
+            memset(guesses[current_player_cookies[i]], '\0', sizeof(guesses[current_player_cookies[i]]));
+            current_player_cookies[i] = -1;
        }
     }
 }
@@ -677,6 +679,12 @@ void register_player(int cookie, int current_player_cookies[]){
     if(current_player_cookies[0] != cookie && current_player_cookies[1] != cookie){
         int player_num = next_player_num(current_player_cookies);
         current_player_cookies[player_num] = cookie;
+    }
+}
+
+void initialise_guesses(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]){
+    for(int i = 0; i < MAX_COOKIE; i++){
+        memset(guesses[i], '\0', sizeof(guesses[i]));
     }
 }
 

@@ -33,9 +33,18 @@ bool handle_http_request(int sockfd, int* user, char guesses[][MAX_KEYWORD_NUM][
     char user_cookie_mapping[][MAX_SIZE_OF_KEYWORD], int* current_players_cookie);
 
 int get_cookie(char* buff);
+
 bool write_header_send_file(char* filename, char* buff, char const * format, int sockfd, int n);
-int next_guess_num(char guesses[][20][101], int cookie);
+
+int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int cookie);
+
 int next_player_num(int current_players_cookie[]);
+
 int get_opponent_cookie(int current_players_cookie[], int user_cookie);
-void reinitialise_player_state(int state[], int current_players_cookie[]);
+
+void reinitialise_player_state_and_guesses(int state[], int current_players_cookie[], 
+    char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]);
+
 void register_player(int cookie, int current_player_cookies[]);
+
+void initialise_guesses(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]);

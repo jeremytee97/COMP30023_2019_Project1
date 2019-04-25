@@ -60,7 +60,18 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         perror("write");
         return false;
     }
+    
+    // sanitise the URI
+    while (*curr == '.' || *curr == '/')
+        ++curr;
 
+    
+    if(*curr == 'f'){
+       if(write(sockfd, HTTP_404, HTTP_404_LENGTH) < 0){
+            perror("write");
+            return false;
+       }
+    }
     int cookie = get_cookie(curr);
     printf("Current cookie %d\n", cookie);
     // new player as no cookie was detected
@@ -140,7 +151,18 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         }
     // cookie is present 
     } else {
-        if(state[cookie] == 0){
+        //check if user has added itself as a current player and assign them as either player 0/1
+        register_player(cookie, current_player_cookies);
+
+        int opponent_cookie = get_opponent_cookie(current_player_cookies, cookie);
+        //check if opponent has quit, if yes then gameover
+        printf("\nOPPONENT COOKIE %d\n", opponent_cookie);
+        if(opponent_cookie >= 0 && state[opponent_cookie] == 5){
+            state[cookie] = 5;
+            write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n);
+            return false;
+        }
+        else if(state[cookie] == 0){
             state[cookie] = 1;
             int filefd;
             struct stat st;
@@ -213,7 +235,6 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                 if (keyword){
 
                     //implies both players are ready
-                    int opponent_cookie = get_opponent_cookie(current_player_cookies, cookie);
                     if(state[opponent_cookie] == 2){
                         keyword = strtok(keyword + 8, "&");
                         int counter = next_guess_num(guesses, cookie);
@@ -289,6 +310,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                 } else {
                     write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n);
                     state[cookie] = 5;
+                    return false;
                 }
             }
         // undefined state return 404
@@ -635,12 +657,29 @@ int get_opponent_cookie(int current_player_cookies[], int user_cookie){
     int counter = 0;
     while(counter < NUM_USER){
         if(current_player_cookies[counter] != user_cookie){
-            return counter;
+            break;
         }
         counter++;
     }
-    return counter;
+    return current_player_cookies[counter];
 }
+
+void reinitialise_player_state(int state[], int current_player_cookies[]){
+    if(state[current_player_cookies[0]] == 5 && state[current_player_cookies[1]] == 5){
+       for(int i = 0; i < NUM_USER; i++){
+           state[current_player_cookies[i]] = 0;
+           current_player_cookies[i] = -1;
+       }
+    }
+}
+
+void register_player(int cookie, int current_player_cookies[]){
+    if(current_player_cookies[0] != cookie && current_player_cookies[1] != cookie){
+        int player_num = next_player_num(current_player_cookies);
+        current_player_cookies[player_num] = cookie;
+    }
+}
+
 /*quit=Quit
 else {
             // never used, just for completeness

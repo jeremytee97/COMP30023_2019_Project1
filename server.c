@@ -131,20 +131,12 @@ int main(int argc, char * argv[])
                 // a request is sent from the client
                 else if (!handle_http_request(i, state, guesses, user_cookie_mapping, current_players_cookie))
                 {
-                    //close(i);
-                    //FD_CLR(i, &masterfds);
+                    printf("socket %d close the connection\n", sockfd);
+                    reinitialise_player_state(state, current_players_cookie);
+                    close(i);
+                    FD_CLR(i, &masterfds);
+                    printf("\n==============\n");
                 }
-                printf("Cookie 0 %s", user_cookie_mapping[0]);
-                printf("Cookie 1 %s", user_cookie_mapping[1]);
-  /*               printf("\nFINAL STATE %d %d\n", state[0], state[1]);
-                if(i == 4 || i == 5){
-                    for(int j = 0; j < MAX_KEYWORD_NUM; j++){
-                        if(guesses[i%2][j][0] == '\0'){
-                            break;
-                        }
-                        printf("\n %s \n", guesses[i%2][j]);
-                    }
-                } */
             }
     }
 

@@ -37,3 +37,5 @@ bool write_header_send_file(char* filename, char* buff, char const * format, int
 int next_guess_num(char guesses[][20][101], int cookie);
 int next_player_num(int current_players_cookie[]);
 int get_opponent_cookie(int current_players_cookie[], int user_cookie);
+void reinitialise_player_state(int state[], int current_players_cookie[]);
+void register_player(int cookie, int current_player_cookies[]);

@@ -4,6 +4,14 @@
 #define MAX_COOKIE 10
 #define NUM_USER 2
 
+#define INFO_PAGE 0
+#define START_PAGE 1
+#define FIRST_ROUND 2
+#define ENDGAME_ONE 3
+#define SECOND_ROUND 4
+#define ENDGAME_TWO 5
+#define GAMEOVER 6
+
 
 static char const * const HTTP_200_FORMAT = "HTTP/1.1 200 OK\r\n\
 Content-Type: text/html\r\n\

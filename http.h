@@ -2,7 +2,7 @@
 #define MAX_SIZE_OF_KEYWORD 101
 #define MAX_KEYWORD_NUM 20
 #define MAX_COOKIE 10
-#define NUM_USER 2
+#define NUM_PLAYER 2
 
 #define INFO_PAGE 0
 #define START_PAGE 1
@@ -44,9 +44,11 @@ int get_cookie(char* buff);
 
 bool write_header_send_file(char* filename, char* buff, char const * format, int sockfd, int n);
 
-int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int cookie);
+int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int current_player_num);
 
 int next_player_num(int current_players_cookie[]);
+
+int get_player_num(int cookie, int current_player_cookies[]);
 
 int get_opponent_cookie(int current_players_cookie[], int user_cookie);
 
@@ -57,4 +59,4 @@ void register_player(int cookie, int current_player_cookies[]);
 
 void initialise_guesses(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]);
 
-bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int opponent_cookie);
+bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int opponent_player_num);

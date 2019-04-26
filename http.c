@@ -168,6 +168,8 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         //check if user has added itself as a current player and assign them as either player 0/1
         register_player(cookie, current_player_cookies);
 
+        int current_player_num = get_player_num(cookie, current_player_cookies);
+        int opponent_player_num = (current_player_num + 1) % 2;
         //get opponent cookie
         int opponent_cookie = get_opponent_cookie(current_player_cookies, cookie);
 
@@ -259,13 +261,13 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                         keyword = strtok(keyword + 8, "&");
                         int counter = next_guess_num(guesses, cookie);
                         printf("\nCounter %d and strlen is %ld\n", counter, strlen(keyword));
-                        strncpy(guesses[cookie][counter], keyword, strlen(keyword));
-                        guesses[cookie][counter][strlen(keyword)+1] = '\0';
-                        printf("\nCurrent guess %s\n", guesses[cookie][counter]);
+                        strncpy(guesses[current_player_num][counter], keyword, strlen(keyword));
+                        guesses[current_player_num][counter][strlen(keyword)+1] = '\0';
+                        printf("\nCurrent guess %s\n", guesses[current_player_num][counter]);
 
                         // check if user guessed the correct keyword of opponent
                         // if correct send endgame
-                        if(validate_keyword(guesses[cookie][counter], guesses, opponent_cookie)){
+                        if(validate_keyword(guesses[current_player_num][counter], guesses, opponent_player_num)){
                             printf("CORRECT GUESS \n");
                             if(!write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n)){
                                 return false;
@@ -278,7 +280,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
 
                             char total_keyword [1000000];
                             memset(total_keyword, '\0', sizeof(total_keyword));
-                            strncpy(total_keyword, guesses[cookie][0], strlen(guesses[cookie][0])+1);
+                            strncpy(total_keyword, guesses[current_player_num][0], strlen(guesses[current_player_num][0])+1);
                             struct stat st;
                             stat("4_accepted.html", &st);
 
@@ -286,9 +288,9 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                                 int i = 1;
                                 printf("Current counter %d\n", counter);
                                 while(i <= counter){
-                                    printf("For i = %d, the key is %s \n", i, guesses[cookie][i]);
+                                    printf("For i = %d, the key is %s \n", i, guesses[current_player_num][i]);
                                     strcat(total_keyword, ", ");
-                                    strcat(total_keyword, guesses[cookie][i]);
+                                    strcat(total_keyword, guesses[current_player_num][i]);
                                     i++;
                                 }
                             }
@@ -376,13 +378,13 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                         keyword = strtok(keyword + 8, "&");
                         int counter = next_guess_num(guesses, cookie);
                         printf("\nCounter %d and strlen is %ld\n", counter, strlen(keyword));
-                        strncpy(guesses[cookie][counter], keyword, strlen(keyword));
-                        guesses[cookie][counter][strlen(keyword)+1] = '\0';
-                        printf("\nCurrent guess %s\n", guesses[cookie][counter]);
+                        strncpy(guesses[current_player_num][counter], keyword, strlen(keyword));
+                        guesses[current_player_num][counter][strlen(keyword)+1] = '\0';
+                        printf("\nCurrent guess %s\n", guesses[current_player_num][counter]);
 
                         // check if user guessed the correct keyword of opponent
                         // if correct send endgame
-                        if(validate_keyword(guesses[cookie][counter], guesses, opponent_cookie)){
+                        if(validate_keyword(guesses[current_player_num][counter], guesses, opponent_player_num)){
                             printf("CORRECT GUESS \n");
                             if(!write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n)){
                                 return false;
@@ -395,7 +397,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                       
                             char total_keyword [1000000];
                             memset(total_keyword, '\0', sizeof(total_keyword));
-                            strncpy(total_keyword, guesses[cookie][0], strlen(guesses[cookie][0])+1);
+                            strncpy(total_keyword, guesses[current_player_num][0], strlen(guesses[current_player_num][0])+1);
                             struct stat st;
                             stat("4b_accepted.html", &st);
 
@@ -403,9 +405,9 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                                 int i = 1;
                                 printf("Current counter %d\n", counter);
                                 while(i <= counter){
-                                    printf("For i = %d, the key is %s \n", i, guesses[cookie][i]);
+                                    printf("For i = %d, the key is %s \n", i, guesses[current_player_num][i]);
                                     strcat(total_keyword, ", ");
-                                    strcat(total_keyword, guesses[cookie][i]);
+                                    strcat(total_keyword, guesses[current_player_num][i]);
                                     i++;
                                 }
                             }
@@ -491,7 +493,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
             //get for new game for second round (not handling third round)
             } else if (method == GET){
                 //clear the keyword buffer for new game
-                memset(guesses[cookie], '\0', sizeof(guesses[cookie]));
+                memset(guesses[current_player_num], '\0', sizeof(guesses[current_player_num]));
                 if(!write_header_send_file("3b_first_turn.html", buff, HTTP_200_FORMAT, sockfd, n)){
                     return false;
                 }
@@ -550,13 +552,13 @@ bool write_header_send_file(char* filename, char* buff, char const * format, int
 }
 
 
-int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int cookie){
+int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int current_player_num){
     int counter = 0;
     while(counter < MAX_KEYWORD_NUM){
-        if(strlen(guesses[cookie][counter]) == 0){
+        if(strlen(guesses[current_player_num][counter]) == 0){
             break;
         }
-        printf("first char is %c\n",guesses[cookie][counter][0]);
+        printf("first char is %c\n",guesses[current_player_num][counter][0]);
         counter ++;
     }
     return counter;
@@ -564,7 +566,7 @@ int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int coo
 
 int next_player_num(int current_player_cookies[]){
     int counter = 0;
-    while(counter < NUM_USER){
+    while(counter < NUM_PLAYER){
         if(current_player_cookies[counter] == -1){
             return counter;
         }
@@ -573,9 +575,20 @@ int next_player_num(int current_player_cookies[]){
     return counter;
 }
 
+int get_player_num(int cookie, int current_player_cookies[]){
+    int player_num = 0;
+    while(player_num < NUM_PLAYER){
+        if(current_player_cookies[player_num] == cookie){
+            break;
+        }
+        player_num++;
+    }
+    return player_num;
+}
+
 int get_opponent_cookie(int current_player_cookies[], int user_cookie){
     int counter = 0;
-    while(counter < NUM_USER){
+    while(counter < NUM_PLAYER){
         if(current_player_cookies[counter] != user_cookie){
             break;
         }
@@ -587,7 +600,7 @@ int get_opponent_cookie(int current_player_cookies[], int user_cookie){
 void reinitialise_player_state_and_guesses(int state[], int current_player_cookies[], 
     char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]){
     if(state[current_player_cookies[0]] == GAMEOVER && state[current_player_cookies[1]] == GAMEOVER){
-       for(int i = 0; i < NUM_USER; i++){
+       for(int i = 0; i < NUM_PLAYER; i++){
             state[current_player_cookies[i]] = 0;
             memset(guesses[current_player_cookies[i]], '\0', sizeof(guesses[current_player_cookies[i]]));
             current_player_cookies[i] = -1;
@@ -603,20 +616,20 @@ void register_player(int cookie, int current_player_cookies[]){
 }
 
 void initialise_guesses(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]){
-    for(int i = 0; i < MAX_COOKIE; i++){
+    for(int i = 0; i < NUM_PLAYER; i++){
         memset(guesses[i], '\0', sizeof(guesses[i]));
     }
 }
 
-bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int opponent_cookie){
+bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int opponent_player_num){
     int i = 0;
     while(i < MAX_KEYWORD_NUM){
-        printf("i value =  %d, keyword %s length is %ld, guesses[opponent_cookie][i] is %s\n", i, keyword, strlen(keyword), guesses[opponent_cookie][i]);
+        printf("i value =  %d, keyword %s length is %ld, guesses[opponent_player_num][i] is %s\n", i, keyword, strlen(keyword), guesses[opponent_player_num][i]);
         //no more keywords in the buffer can break from loop
-        if(strlen(guesses[opponent_cookie][i]) == 0){
+        if(strlen(guesses[opponent_player_num][i]) == 0){
             break;
         }
-        else if(strcmp(keyword, guesses[opponent_cookie][i]) == 0){
+        else if(strcmp(keyword, guesses[opponent_player_num][i]) == 0){
             return true;
         }
         i++;

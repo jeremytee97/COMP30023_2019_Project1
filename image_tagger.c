@@ -24,7 +24,7 @@
 
 #include "http.h"
 
-#define NUM_USER 2
+#define NUM_PLAYER 2
 #define MAX_SIZE_OF_KEYWORD 101
 #define MAX_KEYWORD_NUM 20
 #define MAX_COOKIE 10
@@ -71,7 +71,7 @@ int main(int argc, char * argv[])
     }
 
     // listen on the socket
-    listen(sockfd, NUM_USER);
+    listen(sockfd, NUM_PLAYER);
 
     // initialise an active file descriptors set
     fd_set masterfds;
@@ -83,7 +83,7 @@ int main(int argc, char * argv[])
     int current_players_cookie[2] = {-1, -1};
 
     //Clear all the buffers for storing guesses for each unique cookie
-    char guesses[MAX_COOKIE][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]; 
+    char guesses[NUM_PLAYER][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]; 
     initialise_guesses(guesses);
 
     //Clear buffers for Cookie storing purposes

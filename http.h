@@ -48,3 +48,5 @@ void reinitialise_player_state_and_guesses(int state[], int current_players_cook
 void register_player(int cookie, int current_player_cookies[]);
 
 void initialise_guesses(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]);
+
+bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int opponent_cookie);

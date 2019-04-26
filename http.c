@@ -77,8 +77,9 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
     // new player as no cookie was detected
     if(cookie < 0){
         if (method == GET){
-             write_header_send_file("1_intro.html", buff, HTTP_200_FORMAT, sockfd, n);   
-
+            if(!write_header_send_file("1_intro.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                return false;
+            }
         } else if(method == POST){
             // locate the username 
             char * username = strstr(buff, "user=") + 5;
@@ -86,7 +87,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
             
             //get a unique cookie number for the user
             int cookieCounter = 0;
-            while(cookieCounter < 20){
+            while(cookieCounter < MAX_COOKIE){
                 if(strlen(user_cookie_mapping[cookieCounter]) == 0){
                     break;
                 }
@@ -159,7 +160,9 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         printf("\nOPPONENT COOKIE %d\n", opponent_cookie);
         if(opponent_cookie >= 0 && state[opponent_cookie] == 5){
             state[cookie] = 5;
-            write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n);
+            if(!write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                    return false;
+            }
             return false;
         }
         else if(state[cookie] == 0){
@@ -248,7 +251,9 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                         // if correct send endgame
                         if(validate_keyword(guesses[cookie][counter], guesses, opponent_cookie)){
                             printf("CORRECT GUESS \n");
-                            write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n);
+                            if(!write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                                return false;
+                            }
                             state[cookie] = 4;
 
                         // keyword is an incorrect guess
@@ -321,22 +326,46 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                     //opponent keyword the matches the one of the user
                     //send endgame to user 
                     } else if(state[opponent_cookie] == 4){
-                        write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n);
+                        if(!write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                            return false;
+                        }
                         state[cookie] = 4;
                     
                     //opponent not ready to start
                     } else {
-                        write_header_send_file("5_discarded.html", buff, HTTP_200_FORMAT, sockfd, n);
+                        if(!write_header_send_file("5_discarded.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                            return false;
+                        }
                     }
                 // no keyword means the user quits
                 } else {
-                    write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n);
+                   if(!write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                        return false;
+                    }
                     state[cookie] = 5;
                     return false;
                 }
             }
+       
+        // user are at endgame page
+        } else if(state[cookie] == 4){
+            //post for quit button
+            if(method == POST){
+                if(!write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                    return false;
+                }
+                state[cookie] = 5;
+                return false;
+            
+            //get for new game
+            } else if (method == GET){
+                if(!write_header_send_file("3_first_turn.html", buff, HTTP_200_FORMAT, sockfd, n)){
+                    return false;
+                }
+                state[cookie] = 3;
+            } 
         // undefined state return 404
-        } else if (write(sockfd, HTTP_404, HTTP_404_LENGTH) < 0){
+        }else if (write(sockfd, HTTP_404, HTTP_404_LENGTH) < 0){
             perror("write");
             return false;
         }
@@ -655,7 +684,7 @@ bool write_header_send_file(char* filename, char* buff, char const * format, int
 int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int cookie){
     int counter = 0;
     while(counter < MAX_KEYWORD_NUM){
-        if(guesses[cookie][counter][0] == '\0'){
+        if(strlen(guesses[cookie][counter]) == 0){
             break;
         }
         printf("first char is %c\n",guesses[cookie][counter][0]);
@@ -715,7 +744,7 @@ bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_O
     while(i < MAX_KEYWORD_NUM){
         printf("i value =  %d, keyword %s length is %ld, guesses[opponent_cookie][i] is %s\n", i, keyword, strlen(keyword), guesses[opponent_cookie][i]);
         //no more keywords in the buffer can break from loop
-        if(guesses[opponent_cookie][i][0] == '\0'){
+        if(strlen(guesses[opponent_cookie][i]) == 0){
             break;
         }
         else if(strncmp(keyword, guesses[opponent_cookie][i], strlen(keyword)) == 0){

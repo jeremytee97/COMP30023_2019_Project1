@@ -1,3 +1,8 @@
+/*
+    Computer System - Project 1 (Image Tagging)
+    Author: Jeremy Tee (856782)
+    Purpose: Handles http request and functions that supports game logic (comparing keywords, check user state etc)
+*/
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -42,16 +47,13 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         if (n < 0) {
             perror("read");
         }
-        else
-            printf("socket %d close the connection\n", sockfd);
         return false;
     }
 
     // terminate the string
     buff[n] = 0;
-
     char * curr = buff;
-    printf("%s", buff);
+
     // parse the method
     METHOD method = UNKNOWN;
     if (strncmp(curr, "GET ", 4) == 0)
@@ -74,7 +76,6 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
     while (*curr == '.' || *curr == '/')
         ++curr;
 
-    
     //for favicon handling purposes
     if(*curr == 'f'){
        if(write(sockfd, HTTP_404, HTTP_404_LENGTH) < 0){
@@ -168,21 +169,26 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         //check if user has added itself as a current player and assign them as either player 0/1
         register_player(cookie, current_player_cookies);
 
+        //get player num for current user
         int current_player_num = get_player_num(cookie, current_player_cookies);
+
+        //get player num for opponent
         int opponent_player_num = (current_player_num + 1) % 2;
+
         //get opponent cookie
         int opponent_cookie = get_opponent_cookie(current_player_cookies, cookie);
 
         //check if opponent has quit, if yes then gameover
-        printf("\nOPPONENT COOKIE %d\n", opponent_cookie);
         if(opponent_cookie >= 0 && state[opponent_cookie] == GAMEOVER){
             state[cookie] = GAMEOVER;
             if(!write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n)){
                     return false;
             }
             return false;
-        }
-        else if(state[cookie] == INFO_PAGE){
+        
+        //opponent still in game
+        //case 1: user with cookie getting info_page should be redirected to start_page
+        } else if(state[cookie] == INFO_PAGE){
             state[cookie] = START_PAGE;
             int filefd;
             struct stat st;
@@ -192,7 +198,6 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
             stat("2_start.html", &st);
             filefd = open("2_start.html", O_RDONLY);
             size = st.st_size + strlen(user_cookie_mapping[cookie]) + 9;
-            printf("Current size is %ld\n",size);
 
             n = sprintf(buff, HTTP_200_FORMAT, size);
 
@@ -231,6 +236,8 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                 perror("write");
                 return false;
             }
+
+        //case 2: user at start page
         } else if (state[cookie] == START_PAGE){
             if (method == GET){
                 // get the size of the file
@@ -247,28 +254,25 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                 return false;
             }
 
+        //case 3: user at first_round
         } else if (state[cookie] == FIRST_ROUND){
             // only post methods allowed in this page - either (quit or start with keyword)
-            // check just for completeness
-            printf("state of opponent %d\n", state[opponent_cookie]);
+            // check if post just for completeness
             if (method == POST){
-                //logic if got keyword implies start, if not implies quit
+                //logic: if keyword present in header implies user starts guessing, else implies quit
                 char* keyword = strstr(buff, "keyword=");
                 if (keyword){
                     //implies both players are ready
                     if(state[opponent_cookie] == FIRST_ROUND){
-
                         keyword = strtok(keyword + 8, "&");
                         int counter = next_guess_num(guesses, cookie);
-                        printf("\nCounter %d and strlen is %ld\n", counter, strlen(keyword));
+                        //copy keyword into guesses
                         strncpy(guesses[current_player_num][counter], keyword, strlen(keyword));
                         guesses[current_player_num][counter][strlen(keyword)+1] = '\0';
-                        printf("\nCurrent guess %s\n", guesses[current_player_num][counter]);
-
+                        
                         // check if user guessed the correct keyword of opponent
                         // if correct send endgame
                         if(validate_keyword(guesses[current_player_num][counter], guesses, opponent_player_num)){
-                            printf("CORRECT GUESS \n");
                             if(!write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n)){
                                 return false;
                             }
@@ -276,27 +280,30 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
 
                         // keyword is an incorrect guess
                         } else {
-                            printf("WRONG GUESS \n");
 
+                            //prepare to display all previous guesses
                             char total_keyword [1000000];
                             memset(total_keyword, '\0', sizeof(total_keyword));
+                            //copy first keyword
                             strncpy(total_keyword, guesses[current_player_num][0], strlen(guesses[current_player_num][0])+1);
-                            struct stat st;
-                            stat("4_accepted.html", &st);
 
+                            //concat the rest of keywords
                             if(counter > 0){
                                 int i = 1;
-                                printf("Current counter %d\n", counter);
                                 while(i <= counter){
-                                    printf("For i = %d, the key is %s \n", i, guesses[current_player_num][i]);
+                                    //separator between keywords
                                     strcat(total_keyword, ", ");
+                                    //actual keyword
                                     strcat(total_keyword, guesses[current_player_num][i]);
                                     i++;
                                 }
                             }
 
-                            printf("ALL KEYWORD : %s \n", total_keyword);
+                            struct stat st;
+                            stat("4_accepted.html", &st);
                             long added_length = strlen(total_keyword) + 7;
+
+                            //get total size
                             long size = st.st_size + added_length;
                             n = sprintf(buff, HTTP_200_FORMAT, size);
                             
@@ -353,7 +360,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                             return false;
                         }
                     }
-                // no keyword means the user quits
+                // no keyword in header implies the user quits
                 } else {
                    if(!write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n)){
                         return false;
@@ -367,25 +374,22 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         } else if (state[cookie] == SECOND_ROUND){
             // only post methods allowed in this page - either (quit or start with keyword)
             // check just for completeness
-            printf("state of opponent %d\n", state[opponent_cookie]);
             if (method == POST){
                 //logic if got keyword implies start, if not implies quit
                 char* keyword = strstr(buff, "keyword=");
                 if (keyword){
                     //implies both players are ready
                     if(state[opponent_cookie] == SECOND_ROUND){
-
                         keyword = strtok(keyword + 8, "&");
+
+                        //copy keyword into guesses
                         int counter = next_guess_num(guesses, cookie);
-                        printf("\nCounter %d and strlen is %ld\n", counter, strlen(keyword));
                         strncpy(guesses[current_player_num][counter], keyword, strlen(keyword));
                         guesses[current_player_num][counter][strlen(keyword)+1] = '\0';
-                        printf("\nCurrent guess %s\n", guesses[current_player_num][counter]);
 
                         // check if user guessed the correct keyword of opponent
                         // if correct send endgame
                         if(validate_keyword(guesses[current_player_num][counter], guesses, opponent_player_num)){
-                            printf("CORRECT GUESS \n");
                             if(!write_header_send_file("6_endgame.html", buff, HTTP_200_FORMAT, sockfd, n)){
                                 return false;
                             }
@@ -393,26 +397,27 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
 
                         // keyword is an incorrect guess
                         } else {
-                            printf("WRONG GUESS \n");
-                      
                             char total_keyword [1000000];
                             memset(total_keyword, '\0', sizeof(total_keyword));
-                            strncpy(total_keyword, guesses[current_player_num][0], strlen(guesses[current_player_num][0])+1);
-                            struct stat st;
-                            stat("4b_accepted.html", &st);
 
+                            //copy first keyword
+                            strncpy(total_keyword, guesses[current_player_num][0], strlen(guesses[current_player_num][0])+1);
+                  
+                            //concat the rest of the keywords
                             if(counter > 0){
                                 int i = 1;
-                                printf("Current counter %d\n", counter);
                                 while(i <= counter){
-                                    printf("For i = %d, the key is %s \n", i, guesses[current_player_num][i]);
+                                    //separator between keywords
                                     strcat(total_keyword, ", ");
+                                    //actual keywords
                                     strcat(total_keyword, guesses[current_player_num][i]);
                                     i++;
                                 }
                             }
 
-                            printf("ALL KEYWORD : %s \n", total_keyword);
+                            //get size of file
+                            struct stat st;
+                            stat("4b_accepted.html", &st);
                             long added_length = strlen(total_keyword) + 7;
                             long size = st.st_size + added_length;
                             n = sprintf(buff, HTTP_200_FORMAT, size);
@@ -487,7 +492,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                 if(!write_header_send_file("7_gameover.html", buff, HTTP_200_FORMAT, sockfd, n)){
                     return false;
                 }
-                state[cookie] = 6;
+                state[cookie] = GAMEOVER;
                 return false;
             
             //get for new game for second round (not handling third round)
@@ -508,6 +513,10 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
     return true;
 }
 
+/* get the cookie from a given header 
+   if present return int from 0 to 9
+   else return -1 
+*/  
 int get_cookie(char* buff){
     char* cookie_ptr;
     cookie_ptr = strstr(buff, "Cookie: ");
@@ -517,13 +526,16 @@ int get_cookie(char* buff){
 
         //copy the next character as cookie ranges from 0 - 9 only
         if(isdigit(cookie_ptr[0])){
+            //convert str 0-9 to int
             cookie = cookie_ptr[0] - '0';
         }
     }
     return cookie;
 }
 
-
+/* write the header and send the given file 
+   return false if there's problem reading or writing file
+*/
 bool write_header_send_file(char* filename, char* buff, char const * format, int sockfd, int n){
     struct stat st;
     stat(filename, &st);
@@ -551,19 +563,20 @@ bool write_header_send_file(char* filename, char* buff, char const * format, int
     return true;
 }
 
-
+/* get the next number of guesses */
 int next_guess_num(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int current_player_num){
     int counter = 0;
     while(counter < MAX_KEYWORD_NUM){
         if(strlen(guesses[current_player_num][counter]) == 0){
             break;
         }
-        printf("first char is %c\n",guesses[current_player_num][counter][0]);
         counter ++;
     }
     return counter;
 }
 
+/* get the next available player number
+    either 0 or 1 since two players per game */
 int next_player_num(int current_player_cookies[]){
     int counter = 0;
     while(counter < NUM_PLAYER){
@@ -575,6 +588,7 @@ int next_player_num(int current_player_cookies[]){
     return counter;
 }
 
+/* get the player number of the given cookie (either 0 or 1) */
 int get_player_num(int cookie, int current_player_cookies[]){
     int player_num = 0;
     while(player_num < NUM_PLAYER){
@@ -586,6 +600,7 @@ int get_player_num(int cookie, int current_player_cookies[]){
     return player_num;
 }
 
+/* get opponent player number (either 0 or 1)*/
 int get_opponent_cookie(int current_player_cookies[], int user_cookie){
     int counter = 0;
     while(counter < NUM_PLAYER){
@@ -597,6 +612,7 @@ int get_opponent_cookie(int current_player_cookies[], int user_cookie){
     return current_player_cookies[counter];
 }
 
+/* clear all the guesses buffer and reinitialise player state to prepare for new game */
 void reinitialise_player_state_and_guesses(int state[], int current_player_cookies[], 
     char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]){
     if(state[current_player_cookies[0]] == GAMEOVER && state[current_player_cookies[1]] == GAMEOVER){
@@ -608,6 +624,7 @@ void reinitialise_player_state_and_guesses(int state[], int current_player_cooki
     }
 }
 
+/* store player in current_players_cookie in the game */
 void register_player(int cookie, int current_player_cookies[]){
     if(current_player_cookies[0] != cookie && current_player_cookies[1] != cookie){
         int player_num = next_player_num(current_player_cookies);
@@ -615,16 +632,19 @@ void register_player(int cookie, int current_player_cookies[]){
     }
 }
 
+/* clear buffer for guesses to prepare for new round */
 void initialise_guesses(char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]){
     for(int i = 0; i < NUM_PLAYER; i++){
         memset(guesses[i], '\0', sizeof(guesses[i]));
     }
 }
 
+/* return true if keyword made by user is in guesses of opponent,
+   false otherwise
+*/
 bool validate_keyword(char keyword[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], int opponent_player_num){
     int i = 0;
     while(i < MAX_KEYWORD_NUM){
-        printf("i value =  %d, keyword %s length is %ld, guesses[opponent_player_num][i] is %s\n", i, keyword, strlen(keyword), guesses[opponent_player_num][i]);
         //no more keywords in the buffer can break from loop
         if(strlen(guesses[opponent_player_num][i]) == 0){
             break;

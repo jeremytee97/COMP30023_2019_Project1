@@ -119,24 +119,14 @@ int main(int argc, char * argv[])
                         // update the maximum tracker
                         if (newsockfd > maxfd)
                             maxfd = newsockfd;
-                        // print out the IP and the socket number
-                        char ip[INET_ADDRSTRLEN];
-                        printf(
-                            "new connection from %s on socket %d\n",
-                            // convert to human readable string
-                            inet_ntop(cliaddr.sin_family, &cliaddr.sin_addr, ip, INET_ADDRSTRLEN),
-                            newsockfd
-                        );
                     }
                 }
                 // a request is sent from the client
                 else if (!handle_http_request(i, state, guesses, user_cookie_mapping, current_players_cookie))
                 {
-                    printf("socket %d close the connection\n", sockfd);
                     reinitialise_player_state_and_guesses(state, current_players_cookie, guesses);
                     close(i);
                     FD_CLR(i, &masterfds);
-                    printf("\n==============\n");
                 }
             }
     }

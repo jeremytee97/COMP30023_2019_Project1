@@ -1,9 +1,10 @@
-// constants
+//constants
 #define MAX_SIZE_OF_KEYWORD 101
 #define MAX_KEYWORD_NUM 20
 #define MAX_COOKIE 10
 #define NUM_PLAYER 2
 
+//states for the game
 #define INFO_PAGE 0
 #define START_PAGE 1
 #define FIRST_ROUND 2

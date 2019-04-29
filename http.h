@@ -38,7 +38,7 @@ typedef enum
 } METHOD;
 
 
-bool handle_http_request(int sockfd, int* user, char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], 
+bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD], 
     char user_cookie_mapping[][MAX_SIZE_OF_KEYWORD], int* current_players_cookie);
 
 int get_cookie(char* buff);

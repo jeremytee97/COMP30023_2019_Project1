@@ -79,8 +79,8 @@ int main(int argc, char * argv[])
     FD_SET(sockfd, &masterfds);
     // record the maximum socket number
     int maxfd = sockfd;
-    int state[MAX_COOKIE] = {0};
-    int current_players_cookie[2] = {-1, -1};
+    int state[NUM_PLAYER] = {0};
+    int current_players_cookie[NUM_PLAYER] = {-1, -1};
 
     //Clear all the buffers for storing guesses for each unique cookie
     char guesses[NUM_PLAYER][MAX_KEYWORD_NUM][MAX_SIZE_OF_KEYWORD]; 

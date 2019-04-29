@@ -166,6 +166,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
 
     // cookie is present in header
     } else {
+
         //check if user has added itself as a current player and assign them as either player 0/1
         register_player(cookie, current_player_cookies);
 
@@ -178,6 +179,10 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
         //get opponent cookie
         int opponent_cookie = get_opponent_cookie(current_player_cookies, cookie);
 
+        if(opponent_cookie >= 0){
+            printf("State of User(%d) %d, State of Opponent(%d) %d\n", cookie, state[cookie] , opponent_cookie,state[opponent_cookie]);
+        }
+        
         //check if opponent has quit, if yes then gameover
         if(opponent_cookie >= 0 && state[opponent_cookie] == GAMEOVER){
             state[cookie] = GAMEOVER;
@@ -265,8 +270,9 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                     //implies both players are ready
                     if(state[opponent_cookie] == FIRST_ROUND){
                         keyword = strtok(keyword + 8, "&");
-                        int counter = next_guess_num(guesses, cookie);
+                        int counter = next_guess_num(guesses, current_player_num);
                         //copy keyword into guesses
+                        printf("Keyword inputted %s and counter is %d\n", keyword, counter);
                         strncpy(guesses[current_player_num][counter], keyword, strlen(keyword));
                         guesses[current_player_num][counter][strlen(keyword)+1] = '\0';
                         
@@ -383,7 +389,7 @@ bool handle_http_request(int sockfd, int state[], char guesses[][MAX_KEYWORD_NUM
                         keyword = strtok(keyword + 8, "&");
 
                         //copy keyword into guesses
-                        int counter = next_guess_num(guesses, cookie);
+                        int counter = next_guess_num(guesses, current_player_num);
                         strncpy(guesses[current_player_num][counter], keyword, strlen(keyword));
                         guesses[current_player_num][counter][strlen(keyword)+1] = '\0';
 

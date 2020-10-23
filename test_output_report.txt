@@ -1,0 +1,83 @@
+TEST OUTPUT REPORT:
+
+==========================================================================
+COMP30023 Assignment 1 Feedback for teej1
+Commit Time: 2019-04-29T02:08:54+00:00, with Hash: 2d806216236ea1f7fb4dbd197d7d87b20ad47202
+==========================================================================
+Current time: Thu 9 May 11:24:35 AEST 2019
+
+Running make
+gcc -c -o image_tagger.o image_tagger.c -g -std=c99 -O3 -Wall -Wpedantic
+gcc -c -o http.o http.c -g -std=c99 -O3 -Wall -Wpedantic
+gcc -g -std=c99 -O3 -Wall -Wpedantic  -o image_tagger image_tagger.o http.o
+
+Looking for executable
+Found executable: ./image_tagger
+
+HTML files found, great!
+
+==========================================================================
+
+Running Normal Test
+Running test  1: Get welcome page
+Running test  2: (!) Favicon
+        Incorrect HTTP status line
+        Content-length incorrect
+Running test  3: Name submission with 2 players (welcome first, then submit names)
+Running test  4: Name submission with 2 players (join, submit followed by join, submit)
+Running test  5: Asynchronous name submission
+Running test  6: Start button, player 1 only
+Running test  7: Start button, player 1, then player 2
+Running test  8: Start button, player 2, then player 1
+Running test  9: Guess words, keyword discarded when other player is not ready
+Running test 10: Guess words, multiple discarded keywords
+Running test 11: Guess words, no match with just 1 player
+Running test 12: Guess words, no match with both players
+Running test 13: Guess words, instant match and check for game end
+Running test 14: Guess words, instant match and check for game end for both players
+Running test 15: Guess words, unimelb then uni
+Running test 16: Guess words, uni then unimelb
+Running test 17: Guess words, complete game with one initially discarded word
+Running test 18: Guess words, discarded word should not be matched
+Running test 19: Guess words, complete game with multiple guessed words
+Running test 20: Another round with same players
+Running test 21: Another round with same players (switch perspectives)
+Running test 22: Another round with same players (check for new image)
+Running test 23: Another round, complete game and quit
+Running test 24: Another round, keywords from previous game should not be matched
+Running test 25: (!) Another round advanced 1 (1 player starts at game end)
+Running test 26: Quit on start
+Running test 27: Quit on first turn
+Running test 28: Quit on keyword discarded
+Running test 29: Quit on keyword accepted
+Running test 30: Quit on first turn and other player submits keyword
+Running test 31: Quit on keyword accepted and other player submits keyword
+Running test 32: Quit on game end
+Running test 33: Quit on start both players
+Running test 34: (|) Quit (quit after start on start page) - one or both of this and next case
+Running test 35: (|) Quit (start after quit on start page - pairing not done)
+        Page verification failure on step VERIFY_FIRST_TURN 1
+        Failed
+Running test 36: (!) Quit followed by quit on first turn
+Running test 37: (!) Quit advanced 1 (start, quit at Game Complete)
+Running test 38: (!) Quit advanced 2 (quit, start at Game Complete)
+Running test 39: (AF1) Display keywords list
+Running test 40: (AF1) Display keywords list, not display keywords of other player
+Running test 41: (AF1) Keywords up to length 20
+Running test 42: (AF2) Cookie (close both browsers and start again)
+Running test 43: (AF2) Cookie (close one browser and play full game)
+Running test 44: (AF2) Cookie (swap sockets)
+Running test 45: (!) (AF2) - both players should be able to have same name
+Running test 46: Support more than 2 players (upon quit on game finish)
+Running test 47: Support more than 2 players (when both players quit during game)
+Running test 48: Demo (which includes AF1, AF2)
+No memory errors detected when running demo, excellent! :)
+Passed: 47 / 48
+
+Test execution ended at: Thu 9 May 11:26:15 AEST 2019
+
+==========================================================================
+Feedback Comments:
+Excellent Modularistion; excellent readability of the code; well commented overall; code looks clean and very well organized.
+
+==========================================================================

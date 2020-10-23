@@ -1,6 +1,7 @@
 # COMP30023_2019_Project1
 
-## Score and comments
+## Score and comments 
+[Test output report can be found here](https://github.com/jeremytee97/COMP30023_2019_Project1/blob/master/test_output_report.txt)
 ```
 Functionality: 11     
 Code Quality: 1     

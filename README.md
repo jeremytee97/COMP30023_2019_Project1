@@ -1,5 +1,18 @@
 # COMP30023_2019_Project1
 
+## Score and comments
+```
+Functionality: 11     
+Code Quality: 1     
+Build Quality: 1     
+Git Usage: 1     
+Penalties Applied: 0.0   
+Total: 15/15
+
+Feedback Comments:
+Excellent Modularistion; excellent readability of the code; well commented overall; code looks clean and very well organized.
+```
+
 ## Assumptions:
 
 
